@@ -473,7 +473,9 @@ Whip.register(function()
     -- args = { callId }: the one being called said no
     cb('whip_phone:phone:decline', WRITE, function(source, _, args)
         local call = mine(source, args)
-        if not call or call.state ~= 'ringing' then return true end
+        -- Only the one being called declines. mine() answers either side, and a caller's "decline" was recorded
+        -- and shown to the callee as theirs; a caller who stops ringing hangs up (phone:end, a missed call).
+        if not call or call.callee ~= source or call.state ~= 'ringing' then return true end
         record(call.row, 'declined', false, true)
         push(other(call, source), 'state', { callId = call.id, state = 'declined' })
         finish(call, 'declined')
